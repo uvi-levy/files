@@ -29,7 +29,6 @@ export  class CreatableAdvanced extends Component {
       let userName = url.pathname.split("/")[1];
       console.log(userName);
       localStorage.setItem("userName", userName);
-      // getUidByUserName(userName);
       this.loadFiles()
       
       }
