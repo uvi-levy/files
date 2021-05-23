@@ -632,7 +632,7 @@ export class Files extends Component {
     } else {
       preFile = (
         <div style={{ maxHeight: "250px" }}>
-          <iframe
+          <embed
             src={file.url}
             style={{ width: "100vw", height: "56.25vw" }}
             autoplay="0"
@@ -641,7 +641,7 @@ export class Files extends Component {
             ref={this.imgRef}
             muted
             autoplay
-          ></iframe>
+          ></embed>
         </div>
       );
     }
@@ -913,7 +913,7 @@ export class Files extends Component {
         type: "POST",
         url:
           "https://files.codes/api/" +
-          localStorage.getItem("userName") +
+          userName +
           "/editNotes",
         headers: { Authorization: this.props.jwt },
         data: JSON.stringify({ notes: notes, fileId: fileId }),
@@ -968,10 +968,9 @@ export class Files extends Component {
             if (file.type.includes("video")) viewIcon = BigVideo;
             if (file.type.includes("audio")) viewIcon = BigAudio;
             if (file.type.includes("pdf")) viewIcon = BigFile;
-            if (file.type.includes("image")) viewIcon = BigFile
-          }
-          else{
-            viewIcon = BigFile
+            if (file.type.includes("image")) viewIcon = BigFile;
+          } else {
+            viewIcon = BigFile;
           }
 
           if (
