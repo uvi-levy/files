@@ -44,11 +44,12 @@ export class Chart extends Component {
   render() {
     return (
       <div
+        className="chart"
         style={{
-          backgroundColor:"red",
+          backgroundColor: "red",
           height: "35px",
           // alignItems:"stretch"
-              }}
+        }}
       >
         <ReactSpeedometer
           value={this.state.count.count}

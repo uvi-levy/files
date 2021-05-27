@@ -63,10 +63,10 @@ export class Navbar extends Component {
   filteredFiles(type) {
     const files = this.state.files;
     console.log("in filterFiles");
-    let filtaredFiles=[];
+    let filtaredFiles = [];
     this.props.changeView(userName);
 
-    if (files&&files.length) {
+    if (files && files.length) {
       if (type == "folder") {
         this.props.changeProps([], true);
       }
@@ -84,25 +84,25 @@ export class Navbar extends Component {
         this.props.changeProps(result, false);
       }
       if (type == "img") {
-        filtaredFiles =  this.state.filteredFilesByType[0].img;
+        filtaredFiles = this.state.filteredFilesByType[0].img;
 
         console.log("img" + filtaredFiles);
         this.props.changeProps(filtaredFiles, false);
       }
       if (type == "audio") {
-         filtaredFiles = this.state.filteredFilesByType[1].audio;
+        filtaredFiles = this.state.filteredFilesByType[1].audio;
         console.log(filtaredFiles, false);
 
         this.props.changeProps(filtaredFiles);
       }
       if (type == "video") {
-         filtaredFiles = this.state.filteredFilesByType[2].video;
+        filtaredFiles = this.state.filteredFilesByType[2].video;
         console.log(filtaredFiles);
 
         this.props.changeProps(filtaredFiles, false);
       }
       if (type == "file") {
-         filtaredFiles = this.state.filteredFilesByType[3].others;
+        filtaredFiles = this.state.filteredFilesByType[3].others;
         console.log(filtaredFiles);
 
         this.props.changeProps(filtaredFiles, false);
@@ -111,16 +111,16 @@ export class Navbar extends Component {
       if (type == "all") {
         this.props.changeProps(files, true);
         this.props.changeView(userName);
-      }}
-      if(filtaredFiles.length<1){
-        console.log("no files")
-        this.props.changeView("noFiles")
       }
-      if (type == "trash") {
-        console.log("trash");
-        this.props.changeView("trash");
-      }
-    
+    }
+    if (filtaredFiles.length < 1) {
+      console.log("no files");
+      this.props.changeView("noFiles");
+    }
+    if (type == "trash") {
+      console.log("trash");
+      this.props.changeView("trash");
+    }
   }
 
   render() {
@@ -148,7 +148,7 @@ export class Navbar extends Component {
         text: "Document",
         value: "file",
         icon: FileG,
-        num: doc, //filteredFilesByType[3].length,
+        num: doc,
       },
       {
         text: "Image",
@@ -166,15 +166,18 @@ export class Navbar extends Component {
         text: "Video",
         value: "video",
         icon: VideoG,
-        num: video,
+        num:  video,
       },
       {
         text: "Trash",
         value: "trash",
         icon: Trash,
+       
       },
     ];
     buttons.forEach((Button) => {
+      if(Button.num) Button.num=Button.num.toString()
+    
       const button = (
         <Col style={{ padding: "0", margin: "0.5%" }}>
           <button
@@ -184,7 +187,9 @@ export class Navbar extends Component {
               fontSize: "70%",
               width: "100%",
               margin: "0",
-              height: "30px",
+              height: "35px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
             }}
             onClick={() => {
               this.filteredFiles(Button.value);
@@ -195,6 +200,7 @@ export class Navbar extends Component {
           </button>
         </Col>
       );
+     
       buttonsViews.push(button);
     });
 
@@ -207,10 +213,6 @@ export class Navbar extends Component {
             backgroundColor: "white",
             borderRadius: "8px",
             marginBottom: "0.5%",
-
-            // position: "fixed",
-            // top: "2px",
-            // zIndex: "1",
           }}
         >
           <Row style={{ height: "90px" }} className="align-items-center">
@@ -223,7 +225,7 @@ export class Navbar extends Component {
                   border: "0.5px solid #BDBDC9",
                   borderRadius: "4px",
                   width: "100%",
-                  height: "40px",
+                  height: "35px",
                   margin: "0",
                 }}
                 ref={this.searchRef}
@@ -238,10 +240,9 @@ export class Navbar extends Component {
                 {buttonsViews}
               </Row>
             </Col>
-            <Col sm={2} md={2} style={{ marginLeft: "1.5%", padding: "0" }}>
-              {" "}
+            <Col sm={2} md={2} style={{ textAlign: "end" }}>
               <button
-                className="btn btn-primary  font-weight-bold"
+                className="btn btn-primary font-weight-bold"
                 onClick={() => {
                   this.props.changeView("upload");
                 }}
@@ -251,8 +252,9 @@ export class Navbar extends Component {
                   width: "50%",
                 }}
               >
-                <p style={{ display: "inline", marginRight: "8%" }}>UPLOAD</p>{" "}
-                <img src={Arrow} />{" "}
+                <p>
+                  UPLOAD <img src={Arrow} />
+                </p>{" "}
               </button>
               <OverlayTrigger
                 placement="bottom"
@@ -273,6 +275,7 @@ export class Navbar extends Component {
                   onClick={() => this.props.changeView("newFolder")}
                 ></button>
               </OverlayTrigger>
+              {/* </div> */}
             </Col>
           </Row>
         </Container>

@@ -12,6 +12,7 @@ import ToolkitProvider, {
   CSVExport,
 } from "react-bootstrap-table2-toolkit";
 import {
+  CardDeck,
   Card,
   Breadcrumb,
   OverlayTrigger,
@@ -652,6 +653,12 @@ export class Files extends Component {
             x: "hidden",
             y: "scroll",
           },
+          scrollbars: {
+            visibility: "auto",
+            autoHide: "leave",
+            autoHideDelay: 400,
+          },
+          className: "os-theme-round-dark",
         }}
       >
         <Container
@@ -911,10 +918,7 @@ export class Files extends Component {
 
       $.ajax({
         type: "POST",
-        url:
-          "https://files.codes/api/" +
-          userName +
-          "/editNotes",
+        url: "https://files.codes/api/" + userName + "/editNotes",
         headers: { Authorization: this.props.jwt },
         data: JSON.stringify({ notes: notes, fileId: fileId }),
         dataType: "json",
@@ -982,19 +986,23 @@ export class Files extends Component {
               <Card.Text
                 style={{
                   height: "130px",
+                  width: "100%",
                   textAlign: "center",
                   alignItems: "center",
                   display: "flex",
                   cursor: "pointer",
+                  backgroundColor: "#EFF0F2",
+                  borderRadius: "11px 11px 0 0",
+                  marginBottom: "0",
                 }}
               >
                 <img
                   style={{
                     display: "block",
-                    width: "100%",
-                    height: "100%",
-                    // maxWidth: "95%",
-                    // maxHeight: "95%",
+                    // width: "100%",
+                    // height: "100%",
+                    maxWidth: "100%",
+                    maxHeight: "100%",
                     margin: "auto",
                   }}
                   src={file.url}
@@ -1006,16 +1014,20 @@ export class Files extends Component {
               <Card.Text
                 style={{
                   height: "130px",
+                  width: "100%",
                   overflow: "hidden",
-                  cursor: "not-allowed",
+                  backgroundColor: "#EFF0F2",
+                  borderRadius: "11px 11px 0 0",
+                  margin: "0",
                 }}
               >
                 <img
                   style={{
                     // width: "95%",
-                    height: "95%",
+                    height: "90%",
                     margin: "auto",
-                    marginTop: "3%",
+                    display: "block",
+                    marginTop: "2%",
                   }}
                   src={viewIcon}
                 />
@@ -1035,15 +1047,22 @@ export class Files extends Component {
           const gridCard = (
             <Card
               id={file._id}
-              className="gridCard "
+              className="gridCard"
               onClick={() => this.findFile(null, null, null, file._id)}
               style={{
                 borderRadius: " 11px 11px 0px 0px",
-                margin: "7% 0% 7% 0%",
+                margin: "10% 7% 10% 7%",
                 width: "100%",
+                maxWidth: "100%",
+                minWidth: "200px",
+                height: "185px",
+                overflow: "hidden",
+                padding: "0",
               }}
             >
-              <Card.Body style={{ padding: "1%", cursor: "pointer" }}>
+              <Card.Body
+                style={{ padding: "0px", cursor: "pointer", marginBottom: "0" }}
+              >
                 {filePreview}
                 <Card.Title
                   style={{
@@ -1060,14 +1079,14 @@ export class Files extends Component {
                       display: "inline",
                     }}
                   >
-                    {file.name.split("__")[1].substr(0, 30)}
+                    {file.name.split("__")[1].substr(0, 16)}
                   </p>
                 </Card.Title>
                 <Card.Text
                   className="cardTxt"
-                  style={{ backgroundColor: "#EFF0F2" }}
+                  style={{ backgroundColor: "#EFF0F2", marginBottom: "0px" }}
                 >
-                  <Container fluid>
+                  <Container fluid style={{ marginBottom: "0" }}>
                     <Row>
                       <Col style={{ padding: "0" }}>
                         <small style={{ fontSize: "70%", float: "left" }}>
@@ -1361,7 +1380,6 @@ export class Files extends Component {
 
   download() {
     console.log("in down:(");
-    const jwtFromCookie = this.state.jwtFromCookie;
     const file = this.state.selectedFile;
     const url = file.url;
     console.log(file.url);
@@ -1592,7 +1610,12 @@ export class Files extends Component {
     } else {
       renderCards = currentCard.map((card, index) => {
         return (
-          <Col md={3} sm={8} style={{ borderRadius: "12px" }} key={index}>
+          <Col
+            md={3}
+            sm={8}
+            style={{ borderRadius: "12px", marginLeft: "0", flex: "1",paddingLeft:'0.2%' }}
+            key={index}
+          >
             {card}
           </Col>
         );
@@ -2277,11 +2300,11 @@ export class Files extends Component {
                   </div>
                 )}
                 <Container fluid>
-                  <Row style={{ backgroundColor: "white" }}>
+                  <Row>
                     <Col
                       style={{
                         backgroundColor: "white",
-                        borderRadius: "12px 0 0 12px",
+                        borderRadius: "12px",
 
                         // height: "calc(100vh - 150px)",
                         // minHeight: "90%",
@@ -2289,14 +2312,14 @@ export class Files extends Component {
                     >
                       <Row
                         style={{
-                          backgroundColor: "white",
                           borderRadius: "8px",
                           width: "100%",
                           marginBottom: "0",
                           alignItems: "center",
+                          paddingLeft:'0'
                         }}
                       >
-                        <Col sm={0.5} md={0.5} style={{ marginLeft: "0.5%" }}>
+                        <Col sm={1} md={1} style={{ marginLeft: "0.2%" }}>
                           <OverlayTrigger
                             placement="bottom"
                             delay={{ show: 250, hide: 400 }}
@@ -2315,7 +2338,7 @@ export class Files extends Component {
                             </Button>
                           </OverlayTrigger>
                         </Col>
-                        <Col sm={0.5} md={0.5}>
+                        <Col sm={1} md={1}>
                           <OverlayTrigger
                             placement="bottom"
                             delay={{ show: 250, hide: 400 }}
@@ -2370,30 +2393,38 @@ export class Files extends Component {
                             x: "hidden",
                             y: "scroll",
                           },
+                          scrollbars: {
+                            visibility: "auto",
+                            autoHide: "leave",
+                            autoHideDelay: 400,
+                          },
+                          className: "os-theme-round-dark",
+                          paddingAbsolute: true,
                         }}
                       >
                         <Col
                           id="gridView"
                           style={{
-                            padding: "0",
+                            paddingRight: "6%",
+                            paddingLeft:'0',
                             display: showGrid ? "block" : "none",
-                            backgroundColor: "white",
+                            // backgroundColor: "red",
                             width: "100%",
-                            // overflowY: "scroll",
-                            // overflowX: "hidden",
-                            height: "calc(100vh - 150px)",
-                            minHeight: "100%",
+                            height: "calc(90vh - 100px)",
+                            // minHeight: "100%",
                           }}
                         >
-                          <Row
+                          <CardDeck
                             style={{
-                              margin: "1%",
-                              marginTop: "0",
-                              textAlign: "center",
+                              display: "flex",
+                              flexDirection: "row",
+                              width: "100%",
+                            
                             }}
                           >
                             {renderCards}
-                          </Row>
+                          </CardDeck>
+
                           <Row className="justify-content-md-center">
                             {renderPrevBtn}
                             {pageDecrementBtn}
@@ -2410,13 +2441,19 @@ export class Files extends Component {
                             x: "hidden",
                             y: "scroll",
                           },
+                          scrollbars: {
+                            visibility: "auto",
+                            autoHide: "leave",
+                            autoHideDelay: 400,
+                          },
+                          className: "os-theme-round-dark",
                         }}
                       >
                         <Col
                           style={{
                             display: showList ? "block" : "none",
                             backgroundColor: "white",
-                            height: "calc(100vh - 150px)",
+                            height: "calc(90vh - 100px)",
                             minHeight: "90%",
                           }}
                         >
@@ -2444,7 +2481,7 @@ export class Files extends Component {
                       <Col
                         id="prevFile"
                         style={{
-                          borderRadius: "0 12px 12px 0",
+                          borderRadius: "12px",
                           backgroundColor: "#FFFFFF",
                           display: "flex",
                           justifyContent: "center",
