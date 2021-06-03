@@ -169,6 +169,7 @@ export class Files extends Component {
 
   componentDidMount() {
     console.log("in componentDidMount");
+
     var files = this.props.files;
     var data = this.props.data;
     console.log(data);
@@ -439,234 +440,256 @@ export class Files extends Component {
   }
 
   showPreFile = (file) => {
-    console.log("showPreFile", file);
+    if (file) {
+      console.log("showPreFile", file);
 
-    var preFile;
-    var folderButton = (
-      <button
-        className="btn btn-outline-secondary folderBtn"
-        style={{ color: "gray", border: "none" }}
-      >
-        <img src={Folder} /> /
-      </button>
-    );
-    var p = $("p");
-    p.attr("contenteditable", "false");
-    p.css("border", "none ");
-
-    if (file.tags != null && file.tags != "" && file.tags != []) {
-      const folders = file.tags.split("/");
-      console.log(folders);
-      const folder = folders[folders.length - 1];
-      console.log(folder);
-
-      folderButton = (
+      var preFile;
+      var folderButton = (
         <button
           className="btn btn-outline-secondary folderBtn"
           style={{ color: "gray", border: "none" }}
-          onClick={() => this.findByTag(folder)}
         >
-          <img src={Folder} />
-          {folder}
+          <img src={Folder} /> /
         </button>
       );
-    }
+      var p = $("p");
+      p.attr("contenteditable", "false");
+      p.css("border", "none ");
 
-    var notes = [];
-    console.log(file.notes);
-    file.notes.forEach((note, index) => {
-      const fileNotes = (
-        <Row key={index}>
-          <Col md={10} style={{ color: "#363839", textAlign: "left" }}>
-            <Row>
-              <Col md={5}>
-                <p
-                  className="notes"
-                  id={"note" + index}
-                  onKeyDown={(e) => this.saveEditNote(e, note, note.note, file)}
-                >
-                  {note.note}
-                </p>
-              </Col>
-              <Col md={3}>
-                <p style={{ float: "right", fontSize: "75%" }}>{note.editor}</p>
-              </Col>
-              <Col md={5}>
-                <p style={{ float: "right", fontSize: "70%" }}>{note.date}</p>
-              </Col>
-            </Row>
+      if (file.tags != null && file.tags != "" && file.tags != []) {
+        const folders = file.tags.split("/");
+        console.log(folders);
+        const folder = folders[folders.length - 1];
+        console.log(folder);
 
-            <hr />
-          </Col>
-          <Col>
+        folderButton = (
+          <button
+            className="btn btn-outline-secondary folderBtn"
+            style={{ color: "gray", border: "none" }}
+            onClick={() => this.findByTag(folder)}
+          >
+            <img src={Folder} />
+            {folder}
+          </button>
+        );
+      }
+
+      var notes = [];
+      console.log(file.notes);
+      file.notes.forEach((note, index) => {
+        const fileNotes = (
+          <Row key={index}>
+            <Col md={10} style={{ color: "#363839", textAlign: "left" }}>
+              <Row>
+                <Col md={5}>
+                  <p
+                    className="notes"
+                    id={"note" + index}
+                    onKeyDown={(e) =>
+                      this.saveEditNote(e, note, note.note, file)
+                    }
+                  >
+                    {note.note}
+                  </p>
+                </Col>
+                <Col md={3}>
+                  <p style={{ float: "right", fontSize: "75%" }}>
+                    {note.editor}
+                  </p>
+                </Col>
+                <Col md={5}>
+                  <p style={{ float: "right", fontSize: "70%" }}>{note.date}</p>
+                </Col>
+              </Row>
+
+              <hr />
+            </Col>
+            <Col>
+              <img
+                onClick={() => this.editNote(note, file)}
+                style={{ float: "right", cursor: "pointer" }}
+                src={Note}
+              />
+            </Col>
+          </Row>
+        );
+        notes.push(fileNotes);
+        console.log("indexNotes" + index);
+      });
+
+      const sharedUsers = [];
+      file.sharedUsers.forEach((mail) => {
+        const share = (
+          <div>
+            <a href={"mailto:" + mail}>{mail}</a> <br />
+          </div>
+        );
+        sharedUsers.push(share);
+      });
+      const hoverButtonsAction = [
+        {
+          text: "Delete",
+          value: "delete",
+          icon: Delete,
+          border: "none",
+          txtColor: "gray",
+          fun: this.toggleDeleteDialog,
+        },
+        {
+          text: "Duplication",
+          value: "copy",
+          icon: Copy,
+          border: "groove  1px",
+          txtColor: "DeepSkyBlue",
+          fun: this.copyFile,
+        },
+        {
+          text: "Move To",
+          value: "move",
+          icon: Move,
+          border: "none",
+          color: "purple",
+          txtColor: "HotPink",
+          fun: this.moveTo,
+        },
+        {
+          text: "Download",
+          value: "download",
+          icon: Download,
+          border: "none",
+          txtColor: "gray",
+          fun: this.download,
+        },
+        {
+          text: "Print",
+          value: "print",
+          icon: Print,
+          border: "groove  1px",
+          txtColor: "gray",
+          fun: this.printFile,
+        },
+        {
+          text: "Share",
+          value: "share",
+          icon: Share,
+          border: "none",
+          txtColor: "gray",
+          fun: this.toggleDialog,
+        },
+        {
+          text: "Get Link",
+          value: "link",
+          icon: Link,
+          border: "none",
+          txtColor: "gray",
+          fun: this.toggleGetLink,
+        },
+
+        // {text:"Embed",value:"embed",icon:Embed,border:'none',txtColor:'gray',fun:this.copyEmbed}
+      ];
+      const hoverButtonsActionViews = hoverButtonsAction.map((button) => {
+        return (
+          <OverlayTrigger
+            placement="bottom"
+            delay={{ show: 250, hide: 400 }}
+            overlay={
+              <Tooltip>
+                <span>{button.text}</span>
+              </Tooltip>
+            }
+          >
             <img
-              onClick={() => this.editNote(note, file)}
-              style={{ float: "right", cursor: "pointer" }}
-              src={Note}
+              variant="light"
+              style={{
+                color: "#8181A5",
+                backgroundColor: "#FFFFFF",
+                cursor: "pointer",
+                border: "none",
+                textAlign: "left",
+                padding: "10px",
+              }}
+              onClick={() => button.fun()}
+              src={button.icon}
             />
-          </Col>
-        </Row>
-      );
-      notes.push(fileNotes);
-      console.log("indexNotes" + index);
-    });
+          </OverlayTrigger>
+        );
+      });
 
-    const sharedUsers = [];
-    file.sharedUsers.forEach((mail) => {
-      const share = (
-        <div>
-          <a href={"mailto:" + mail}>{mail}</a> <br />
-        </div>
-      );
-      sharedUsers.push(share);
-    });
-    const hoverButtonsAction = [
-      {
-        text: "Delete",
-        value: "delete",
-        icon: Delete,
-        border: "none",
-        txtColor: "gray",
-        fun: this.toggleDeleteDialog,
-      },
-      {
-        text: "Duplication",
-        value: "copy",
-        icon: Copy,
-        border: "groove  1px",
-        txtColor: "DeepSkyBlue",
-        fun: this.copyFile,
-      },
-      {
-        text: "Move To",
-        value: "move",
-        icon: Move,
-        border: "none",
-        color: "purple",
-        txtColor: "HotPink",
-        fun: this.moveTo,
-      },
-      {
-        text: "Download",
-        value: "download",
-        icon: Download,
-        border: "none",
-        txtColor: "gray",
-        fun: this.download,
-      },
-      {
-        text: "Print",
-        value: "print",
-        icon: Print,
-        border: "groove  1px",
-        txtColor: "gray",
-        fun: this.printFile,
-      },
-      {
-        text: "Share",
-        value: "share",
-        icon: Share,
-        border: "none",
-        txtColor: "gray",
-        fun: this.toggleDialog,
-      },
-      {
-        text: "Get Link",
-        value: "link",
-        icon: Link,
-        border: "none",
-        txtColor: "gray",
-        fun: this.toggleGetLink,
-      },
-
-      // {text:"Embed",value:"embed",icon:Embed,border:'none',txtColor:'gray',fun:this.copyEmbed}
-    ];
-    const hoverButtonsActionViews = hoverButtonsAction.map((button) => {
-      return (
-        <OverlayTrigger
-          placement="bottom"
-          delay={{ show: 250, hide: 400 }}
-          overlay={
-            <Tooltip>
-              <span>{button.text}</span>
-            </Tooltip>
-          }
-        >
-          <img
-            variant="light"
+      if (
+        file.name.toLowerCase().split(".")[1] == "png" ||
+        file.name.toLowerCase().split(".")[1] == "jpg" ||
+        file.name.toLowerCase().split(".")[1] == "jpeg"
+      ) {
+        preFile = (
+          <div
             style={{
-              color: "#8181A5",
-              backgroundColor: "#FFFFFF",
+              height: "150px",
+
+              width: "100%",
+              textAlign: "center",
+              alignItems: "center",
+              display: "flex",
               cursor: "pointer",
-              border: "none",
-              textAlign: "left",
-              padding: "10px",
+              backgroundColor: "#EFF0F2",
+              borderRadius: "11px 11px 0 0",
+              marginBottom: "0",
             }}
-            onClick={() => button.fun()}
-            src={button.icon}
-          />
-        </OverlayTrigger>
-      );
-    });
-
-    if (
-      file.name.toLowerCase().split(".")[1] == "png" ||
-      file.name.toLowerCase().split(".")[1] == "jpg" ||
-      file.name.toLowerCase().split(".")[1] == "jpeg"
-    ) {
-      preFile = (
-        <div style={{ width: "100%", height: "auto" }}>
-          <img
-            ref={this.imgRef}
-            style={{
-              width: "auto",
-              height: "auto",
-              maxWidth: "90%",
-              maxHeight: "90%",
-              marginTop: "1%",
-            }}
-            src={file.url}
-            onClick={this.full}
-          />
-        </div>
-      );
-    } else {
-      preFile = (
-        <div style={{ maxHeight: "250px" }}>
-          <embed
-            src={file.url}
-            style={{ width: "100vw", height: "56.25vw" }}
-            autoplay="0"
-            autostart="0"
-            allowfullscreen
-            ref={this.imgRef}
-            muted
-            autoplay
-          ></embed>
-        </div>
-      );
-    }
-    var fileUrl = (
-      <OverlayScrollbarsComponent
-        options={{
-          overflowBehavior: {
-            x: "hidden",
-            y: "scroll",
-          },
-          scrollbars: {
-            visibility: "auto",
-            autoHide: "leave",
-            autoHideDelay: 400,
-          },
-          className: "os-theme-round-dark",
-        }}
-      >
+          >
+            <img
+              style={{
+                display: "block",
+                // width: "100%",
+                // height: "100%",
+                maxWidth: "100%",
+                maxHeight: "100%",
+                margin: "auto",
+              }}
+              ref={this.imgRef}
+              src={file.url}
+            />
+          </div>
+        );
+      } else {
+        preFile = (
+          <div style={{ maxHeight: "250px", width: "100%" }}>
+            <iframe
+              src={file.url}
+              style={{ width: "50%", height: "50%" }}
+              autoplay="0"
+              autostart="0"
+              allowfullscreen
+              ref={this.imgRef}
+              muted
+            ></iframe>
+          </div>
+        );
+      }
+      var fileUrl = (
+        // <OverlayScrollbarsComponent
+        //   options={{
+        //     overflowBehavior: {
+        //       x: "scroll",
+        //       y: "scroll",
+        //     },
+        //     scrollbars: {
+        //       visibility: "auto",
+        //       autoHide: "leave",
+        //       autoHideDelay: 400,
+        //     },
+        //     className: "os-theme-thin-dark",
+        //     paddingAbsolute: true,
+        //   }}
+        // >
         <Container
           fluid
           style={{
+            width: "95%",
             color: "#8181A5",
-            height: "calc(100vh - 150px)",
-            minHeight: "100%",
+            // width: "100%",
+            // height: "calc(90vh - 100px)",
+            // height: "95%",
+            display: "block",
+            overFlow: "scroll",
           }}
         >
           <Row style={{ textAlign: "center", marginTop: "0.5%" }}>
@@ -676,155 +699,165 @@ export class Files extends Component {
           <Row className="justify-content-md-center">
             <Col
               style={{
-                overflow: "hidden",
+                width: "98%",
+
                 textAlign: "center",
               }}
             >
               {preFile}
             </Col>
           </Row>
-          <Row className="justify-content-md-center">
-            <Col md={7}>
-              <p style={{ fontWeight: "bold", margin: "4%" }}>
-                {file.name.split("__")[1].substr(0, 15)}
-              </p>
-            </Col>
-            <Col md={4}>{folderButton} </Col>
-          </Row>
-          <Row
-            className="justify-content-md-center"
-            style={{ marginTop: "1%" }}
-          >
-            <Col
-              md={10}
-              style={{
-                marginRight: "0px",
-                padding: "0",
-                borderRadius: "8px 0 0 8px",
-              }}
-            >
-              <textarea
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  border: "none",
-                  backgroundColor: "#F6F6FA",
-                  fontSize: "60%",
-                  resize: "none",
-                  float: "right",
-                }}
-                ref={this.textAreaLinkRef}
-              >
-                {file.url}
-              </textarea>
-            </Col>
-            <Col style={{ padding: "0" }}>
-              <Button
-                variant="primary"
-                onClick={this.getLink}
-                style={{
-                  borderRadius: "0 8px 8px 0 ",
-                  float: "left",
-                  margin: "0",
-                }}
-              >
-                <img src={LinkW} />
-              </Button>
-            </Col>
-          </Row>
-          <hr />
-          <Row>
-            <Col md={6}>
-              {" "}
-              <p style={{ marginBottom: "0" }}>
-                Date Created{" "}
-                <p style={{ color: "#363839", display: "inline" }}>
-                  {file.dateCreated.split("T")[0]}
-                </p>
-              </p>{" "}
-            </Col>
-            <Col md={6}>
-              {" "}
-              <p style={{ float: "right", marginBottom: "1%" }}>
-                Size{" "}
-                <p style={{ color: "#363839", display: "inline" }}>
-                  {" "}
-                  {(file.size * 1024).toPrecision(4) + " KB"}
-                </p>
-              </p>
-            </Col>
-          </Row>
-          <Row>
-            <Col md={6}>
-              {" "}
-              <p>
-                Shared With{" "}
-                <p style={{ color: "#363839", display: "inline" }}>
-                  {sharedUsers}
-                </p>
-              </p>
-            </Col>
-            <Col md={6}>
-              {" "}
-              <p style={{ float: "right" }}>
-                Format{" "}
-                <p style={{ color: "#363839", display: "inline" }}>
-                  {file.name.toLowerCase().split(".")[1]}
-                </p>
-              </p>
-            </Col>
-          </Row>
-          <Row className="justify-content-between">
-            <Col>Notes</Col>
-          </Row>
-          <Row>
-            <Col style={{ textAlign: "center" }}>
-              <hr />
-              {notes}
-              <Row>
-                <Col style={{ position: "relative" }}>
-                  <textarea
-                    placeholder="Add your note here..."
-                    ref={this.textAreaNoteRef}
-                    style={{
-                      width: "100%",
-                      height: "100px",
-                      resize: "none",
-                      border: "none",
-                      outline: "0.2px solid #8181A5",
-                      display: "block",
-                    }}
-                    onKeyPress={(e) => {
-                      this.saveNotes(e);
-                    }}
-                  />
-                  <Button
-                    onClick={() => this.saveNotes("save")}
-                    style={{
-                      color: "#8181A5",
-                      padding: "0.5%",
-                      float: "right",
-                      position: "absolute",
-                      bottom: "30%",
-                      right: "5%",
-                    }}
-                    variant="outline-dark"
-                  >
-                    save +
-                  </Button>
-                  <hr />
-                </Col>
-              </Row>
-              <Row>
-                <Col></Col>
-              </Row>
-            </Col>
-          </Row>
-        </Container>
-      </OverlayScrollbarsComponent>
-    );
 
-    this.setState({ filePreview: fileUrl });
+          <div>
+            <Row className="justify-content-md-center">
+              <Col md={7}>
+                <p style={{ fontWeight: "bold", margin: "4%" }}>
+                  {file.name.split("__")[1].substr(0, 15)}
+                </p>
+              </Col>
+              <Col md={4}>{folderButton} </Col>
+            </Row>
+            <Row
+              className="justify-content-md-center"
+              style={{ marginTop: "1%" }}
+            >
+              <Col
+                md={10}
+                style={{
+                  marginRight: "0px",
+                  padding: "0",
+                  borderRadius: "8px 0 0 8px",
+                }}
+              >
+                <textarea
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    border: "none",
+                    backgroundColor: "#F6F6FA",
+                    fontSize: "60%",
+                    resize: "none",
+                    float: "right",
+                  }}
+                  ref={this.textAreaLinkRef}
+                  value={file.url}
+                ></textarea>
+              </Col>
+              <Col style={{ padding: "0" }}>
+                <Button
+                  variant="primary"
+                  onClick={this.getLink}
+                  style={{
+                    borderRadius: "0 8px 8px 0 ",
+                    float: "left",
+                    margin: "0",
+                  }}
+                >
+                  <img src={LinkW} />
+                </Button>
+              </Col>
+            </Row>
+            <hr />
+            <Row>
+              <Col md={5}>
+                {" "}
+                <p style={{ marginBottom: "0" }}>
+                  Date Created{" "}
+                  <p style={{ color: "#363839", display: "inline" }}>
+                    {file.dateCreated.split("T")[0].substr(2)}
+                  </p>
+                </p>{" "}
+              </Col>
+              <Col md={5}>
+                {" "}
+                <p style={{ float: "right", marginBottom: "1%" }}>
+                  Size{" "}
+                  <p style={{ color: "#363839", display: "inline" }}>
+                    {" "}
+                    {(file.size * 1024).toPrecision(4) + " KB"}
+                  </p>
+                </p>
+              </Col>
+            </Row>
+            <Row>
+              <Col md={6}>
+                {" "}
+                <p>
+                  Shared With{" "}
+                  <p style={{ color: "#363839", display: "inline" }}>
+                    {sharedUsers}
+                  </p>
+                </p>
+              </Col>
+              <Col md={6}>
+                {" "}
+                <p style={{ float: "right" }}>
+                  Format{" "}
+                  <p style={{ color: "#363839", display: "inline" }}>
+                    {file.name.toLowerCase().split(".")[1]}
+                  </p>
+                </p>
+              </Col>
+            </Row>
+            <Row className="justify-content-between">
+              <Col>Notes</Col>
+            </Row>
+            <Row>
+              <Col style={{ textAlign: "center" }}>
+                <hr />
+                {notes}
+                <Row>
+                  <Col style={{ position: "relative" }}>
+                    <textarea
+                      placeholder="Add your note here..."
+                      ref={this.textAreaNoteRef}
+                      style={{
+                        width: "100%",
+                        height: "100px",
+                        resize: "none",
+                        border: "none",
+                        outline: "0.2px solid #8181A5",
+                        display: "block",
+                      }}
+                      onKeyPress={(e) => {
+                        this.saveNotes(e);
+                      }}
+                    />
+                    <Button
+                      onClick={() => this.saveNotes("save")}
+                      style={{
+                        color: "#8181A5",
+                        padding: "0.5%",
+                        float: "right",
+                        position: "absolute",
+                        bottom: "30%",
+                        right: "5%",
+                      }}
+                      variant="outline-dark"
+                    >
+                      save +
+                    </Button>
+                    <hr />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col></Col>
+                </Row>
+              </Col>
+            </Row>
+          </div>
+        </Container>
+        //  </OverlayScrollbarsComponent>
+      );
+
+      this.setState({ filePreview: fileUrl });
+    } else {
+      this.setState({
+        filePreview: (
+          <p style={{ margin: "0", color: "#75798E" }}>no Preview Available</p>
+        ),
+      });
+    }
   };
 
   full = () => {
@@ -1015,26 +1048,27 @@ export class Files extends Component {
                 style={{
                   height: "130px",
                   width: "100%",
-                  overflow: "hidden",
+                  textAlign: "center",
+                  alignItems: "center",
+                  display: "flex",
+                  cursor: "pointer",
                   backgroundColor: "#EFF0F2",
                   borderRadius: "11px 11px 0 0",
-                  margin: "0",
+                  marginBottom: "0",
                 }}
               >
                 <img
                   style={{
-                    // width: "95%",
-                    height: "90%",
-                    margin: "auto",
                     display: "block",
-                    marginTop: "2%",
+                    maxHeight: "60%",
+                    margin: "auto",
                   }}
                   src={viewIcon}
                 />
               </Card.Text>
             );
           }
-          console.log(file.size * 1024);
+
           const row = {
             id: file._id,
             all: iconsClasses[file.name.toLowerCase().split(".")[1]],
@@ -1095,7 +1129,7 @@ export class Files extends Component {
                       </Col>
                       <Col style={{ padding: "0" }}>
                         <small style={{ fontSize: "70%", float: "right" }}>
-                          {(file.size * 1024).toPrecision(4)} KB
+                          {(file.size * 1024).toPrecision(4).toString()} KB
                         </small>
                       </Col>
                     </Row>
@@ -1120,7 +1154,7 @@ export class Files extends Component {
             name: folder.name,
             // team: user,
             date: folder.date.split("T")[0].substr(2),
-            "file size": folder.size.toPrecision(4) + " KB",
+            "file size": folder.size.toPrecision(4).toString() + " KB",
           };
           const gridCard = (
             <Card
@@ -1130,8 +1164,13 @@ export class Files extends Component {
               }
               style={{
                 borderRadius: " 11px 11px 0px 0px",
-                margin: "7% 0% 7% 0%",
+                margin: "10% 7% 10% 7%",
                 width: "100%",
+                maxWidth: "100%",
+                minWidth: "200px",
+                height: "185px",
+                overflow: "hidden",
+                padding: "0",
               }}
             >
               <Card.Body style={{ padding: "1%" }}>
@@ -1142,12 +1181,15 @@ export class Files extends Component {
                     alignItems: "center",
                     display: "flex",
                     cursor: "pointer",
+                    width: "100%",
+                    borderRadius: "11px 11px 0 0",
+                    margin: "0",
+                    backgroundColor: "#EFF0F2",
                   }}
                 >
                   <img
                     style={{
                       display: "block",
-
                       maxWidth: "95%",
                       maxHeight: "95%",
                       margin: "auto",
@@ -1158,10 +1200,12 @@ export class Files extends Component {
                 <Card.Title>
                   <p style={{ fontSize: "85%" }}>{folder.name}</p>
                 </Card.Title>
-                <Card.Text style={{ backgroundColor: "#EFF0F2" }}>
+                <Card.Text
+                  style={{ backgroundColor: "#EFF0F2", marginBottom: "0" }}
+                >
                   <Container fluid>
                     <Row>
-                      <Col>
+                      <Col style={{ padding: "0" }}>
                         {" "}
                         <small style={{ fontSize: "70%", float: "left" }}>
                           {folder.date.split("T")[0].substr(2)}
@@ -1169,7 +1213,7 @@ export class Files extends Component {
                       </Col>
                       <Col style={{ padding: "0" }}>
                         <small style={{ fontSize: "70%", float: "right" }}>
-                          {folder.size.toPrecision(4)} KB
+                          {folder.size.toPrecision(4).toString()} KB
                         </small>
                       </Col>
                     </Row>
@@ -1192,7 +1236,12 @@ export class Files extends Component {
     var data = this.props.data;
     if (typeof data === "object") {
       data.forEach((file) => {
-        if (file.tags != "" && file.tags != "null" && file.tags) {
+        if (
+          file.delete == false &&
+          file.tags != "" &&
+          file.tags != "null" &&
+          file.tags
+        ) {
           const folder = file.tags.split("/");
 
           folder.forEach((folder) => myFolder.push(folder));
@@ -1261,7 +1310,8 @@ export class Files extends Component {
       contentType: "application/json",
 
       success: () => {
-        // alert("file delete!!");
+        this.setState({ selectedFile: {} });
+        this.showPreFile();
         this.props.loadFiles();
       },
       error: function (err) {
@@ -1457,7 +1507,7 @@ export class Files extends Component {
         type: "POST",
         url:
           "https://files.codes/api/" +
-          localStorage.getItem("uId") +
+          localStorage.getItem("userName") +
           "/createNewFolder",
         headers: { Authorization: this.props.jwt },
         data: myFile,
@@ -1467,8 +1517,9 @@ export class Files extends Component {
           alert("new folder created!");
           this.setState({ visibleNewFolder: false });
           console.log(data);
+          this.props.loadFiles();
         },
-        error: function (err) {
+        error: (err) => {
           alert("please try again later");
         },
       });
@@ -1613,7 +1664,12 @@ export class Files extends Component {
           <Col
             md={3}
             sm={8}
-            style={{ borderRadius: "12px", marginLeft: "0", flex: "1",paddingLeft:'0.2%' }}
+            style={{
+              borderRadius: "12px",
+              marginLeft: "0",
+              flex: "1",
+              paddingLeft: "0.2%",
+            }}
             key={index}
           >
             {card}
@@ -1827,10 +1883,16 @@ export class Files extends Component {
         align: "center",
         sort: true,
         sortFunc: (a, b, order) => {
-          if (order === "asc") {
-            return Number(a.match(/(\d+)/g)[0]) - Number(b.match(/(\d+)/g)[0]);
-          } else {
-            return Number(b.match(/(\d+)/g)[0]) - Number(a.match(/(\d+)/g)[0]);
+          if (a && b && a != null && b != null) {
+            if (order === "asc") {
+              return (
+                Number(a.match(/(\d+)/g)[0]) - Number(b.match(/(\d+)/g)[0])
+              );
+            } else {
+              return (
+                Number(b.match(/(\d+)/g)[0]) - Number(a.match(/(\d+)/g)[0])
+              );
+            }
           }
         },
         headerClasses: "header-class",
@@ -2316,7 +2378,7 @@ export class Files extends Component {
                           width: "100%",
                           marginBottom: "0",
                           alignItems: "center",
-                          paddingLeft:'0'
+                          paddingLeft: "0",
                         }}
                       >
                         <Col sm={1} md={1} style={{ marginLeft: "0.2%" }}>
@@ -2398,7 +2460,7 @@ export class Files extends Component {
                             autoHide: "leave",
                             autoHideDelay: 400,
                           },
-                          className: "os-theme-round-dark",
+                          className: "os-theme-thin-dark",
                           paddingAbsolute: true,
                         }}
                       >
@@ -2406,7 +2468,7 @@ export class Files extends Component {
                           id="gridView"
                           style={{
                             paddingRight: "6%",
-                            paddingLeft:'0',
+                            paddingLeft: "0",
                             display: showGrid ? "block" : "none",
                             // backgroundColor: "red",
                             width: "100%",
@@ -2419,7 +2481,6 @@ export class Files extends Component {
                               display: "flex",
                               flexDirection: "row",
                               width: "100%",
-                            
                             }}
                           >
                             {renderCards}
@@ -2446,7 +2507,7 @@ export class Files extends Component {
                             autoHide: "leave",
                             autoHideDelay: 400,
                           },
-                          className: "os-theme-round-dark",
+                          className: "os-theme-thin-dark",
                         }}
                       >
                         <Col
@@ -2488,8 +2549,12 @@ export class Files extends Component {
                           alignItems: "center",
                           overflowY: "hidden",
                           overflowX: "hidden",
-                          height: "calc(100vh - 150px)",
+                          height: "calc(90vh - 100px)",
                           minHeight: "100%",
+                          maxWidth: "100%",
+                        }}
+                        onClick={() => {
+                          console.log("resize");
                         }}
                       >
                         {this.state.filePreview}

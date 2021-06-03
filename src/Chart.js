@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import ReactSpeedometer from "react-d3-speedometer";
+import { ProgressBar } from "react-bootstrap";
 import $ from "jquery";
 export class Chart extends Component {
   constructor(props) {
@@ -22,10 +22,11 @@ export class Chart extends Component {
         : null;
     }
     var userName;
+    let url = window.location;
     if (window.location == "http://localhost:3000/uvi") {
       userName = "uvi";
     } else {
-      userName = localStorage.getItem("userName");
+      userName = url.pathname.split("/")[1];
     }
     $.ajax({
       type: "GET",
@@ -46,31 +47,13 @@ export class Chart extends Component {
       <div
         className="chart"
         style={{
-          backgroundColor: "red",
           height: "35px",
-          // alignItems:"stretch"
+          textAlign: "center"
+         
         }}
       >
-        <ReactSpeedometer
-          value={this.state.count.count}
-          maxValue={2048}
-          width={100}
-          height={100}
-          fluidWidth={false}
-          valueTextFontSize={"0px"}
-          segment={10}
-          segmentColors={[
-            "#2FAAF4",
-            "#2FAAF4",
-            "#0F93E3",
-            "#007FCC",
-            "#0064A0",
-          ]}
-          labelFontSize={"0"}
-          ringWidth={16}
-          needleHeightRatio={0.34}
-          needleColor={"2E2E2E"}
-        />
+        <p style={{ fontSize:'10px'}}>5/1000</p>
+        <ProgressBar style={{ height: "6px",}} striped variant="info" now={20} />
       </div>
     );
   }

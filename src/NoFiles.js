@@ -24,15 +24,9 @@ export class NoFiles extends Component {
         <Row >
           <Col style={{ marginTop: "5%"}}>
               <img src={FileCard} height="30%" />
-            <h1>Oops......</h1>
-            <h2>There are no files here</h2>
-            <Button  style={{ marginTop: "5%"}}
-              onClick={() => {
-                this.props.goToUpload()
-              }}
-            >
-              upload new file
-            </Button>
+          
+            <h2>No Matching Files Found</h2>
+           
           </Col>
        
         </Row>

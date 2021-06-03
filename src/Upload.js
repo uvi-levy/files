@@ -54,7 +54,7 @@ export class Upload extends Component {
     this.state = {
       uId: "",
       userName: "",
-      loadBar:false,
+      loadBar: false,
       loader: false,
       files: [],
       tag: "",
@@ -72,8 +72,10 @@ export class Upload extends Component {
     this.backToHome = this.backToHome.bind(this);
     this.saveFiles = this.saveFiles.bind(this);
   }
-  componentDidMount() {var files=this.props.files
-  this.setState({files,loadBar:true})}
+  componentDidMount() {
+    var files = this.props.files;
+    this.setState({ files, loadBar: true });
+  }
   changeProps = (files, showFolder, history) => {
     console.log("filesChangeProps" + history);
   };
@@ -192,10 +194,8 @@ export class Upload extends Component {
       loadedAjax1: 0,
       loadedAjax2: 0,
     });
-    
+
     this.props.loadFiles();
-  
-  
   };
 
   uploadMulti = () => {
@@ -208,12 +208,17 @@ export class Upload extends Component {
       alert("ooops... not files to upload");
     } else {
       myFiles.forEach((file, index) => {
-        if (file.size > 5242880) {//409835335
+        if (file.size > 2097152) {
           alert(
             `sorry, the file ${file.name} is too big file, Please remove it from the list`
           );
         } else {
-          if (!file.type.includes("image")&&!file.type.includes("video")&&!file.type.includes("audio")&&!file.type.includes("pdf")) {
+          if (
+            !file.type.includes("image") &&
+            !file.type.includes("video") &&
+            !file.type.includes("audio") &&
+            !file.type.includes("pdf")
+          ) {
             alert(
               `sorry, the file ${file.name} is not support, Please remove it from the list`
             );
@@ -441,191 +446,212 @@ export class Upload extends Component {
         </Col>
       </Row>
     );
-    return ( <div style={{ height: "100vh", backgroundColor: "#EDEEF0" }}>
-      <Container fluid style={{marginTop:"1%"}}>
-       
-       {this.state.loadBar&&
-        <Navbar
-          files={this.state.files}
-          changeProps={(val, fol, history) => {
-            this.changeProps(val, fol, history);
-          }}
-          changeView={(view) => {
-            this.changeView(view);
-          }}
-        />}
-        <Row>
-         <Col style={{
-            backgroundColor: "white",
-            borderRadius: "12px 0 0 12px",
-            margin:"0.5%"
-           
-          }}>
-       
-     <Row><Col> <Button onClick={()=>{this.props.history.push('/'+userName)}}>back 🔙</Button></Col></Row>
-     <Row>
-          <Col style={{ display: this.state.inputFile ? "block" : "none" }}>
-            <div
+    return (
+      <div style={{ height: "100vh", backgroundColor: "#EDEEF0" }}>
+        <Container fluid style={{ marginTop: "1%" }}>
+          {this.state.loadBar && (
+            <Navbar
+              files={this.state.files}
+              changeProps={(val, fol, history) => {
+                this.changeProps(val, fol, history);
+              }}
+              changeView={(view) => {
+                this.changeView(view);
+              }}
+            />
+          )}
+          <Row>
+            <Col
               style={{
-                height: "80vh",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                overflow: "auto",
+                backgroundColor: "white",
+                borderRadius: "12px 0 0 12px",
+                margin: "0.5%",
               }}
             >
-            
-              <div
-                id="fileUp"
-                onClick={fileInputClicked}
-                onDragOver={dragOver}
-                onDragEnter={dragEnter}
-                onDragLeave={dragLeave}
-                onDrop={fileDrop}
-                style={{
-                  width: "70%",
-                  height: "70%",
-                  border: "4px dashed #E8E7F2",
-                  textAlign: "center",
-                  overflow: "hidden",
-                }}
-              >
-                 
-                <img
-                  src={uploadImg}
-                  style={{ marginTop: "8%", marginBottom: "3%" }}
-                />
-               <h2
-                  style={{
-                    color: "#3A405E",
-                    font: "normal normal medium 32px/43px Roboto",
-                    letterSpacing: "0.58px",
-                  
-                  }}
-                >
-                  <p
-                    id="upload"
-                    style={{
-                      color: "#3A405E",
-                      textDecoration: "underline",
-                      cursor: "pointer",
-                      display: "inline",
+              <Row>
+                <Col>
+                  {" "}
+                  <Button
+                    onClick={() => {
+                      this.props.history.push("/" + userName);
                     }}
+                    style={{ color: "#3A405E" }}
                   >
-                    Upload
-                  </p>
-                  <p style={{ display: "inline" }}> or drag your files here</p>{" "}
-                </h2>
-              </div>
-              <input
-                style={{ display: "none" }}
-                ref={this.fileInputRef}
-                className="file-input"
-                type="file"
-                multiple
-                onChange={filesSelected}
-              />
-            </div>
-          </Col>
-
-          <Col
-            style={{
-              minHeight:"80vh",
-              textAlign: "center",
-              padding: "0.5%",
-              display: this.state.showFiles ? "block" : "none",
-            }}
-          >
-            {" "}
-            <div style={{ width: "80%", margin: "10%", marginTop: "10%" }}>
-              <BootstrapTable
-                keyField="id"
-                data={this.state.filesToUp}
-                columns={columns}
-                noDataIndication={notFiles}
-                bordered={false}
-                striped
-                hover
-                condensed
-                search
-              />
-            </div>
-            <Container style={{ marginTop: "10%" }}>
-              <Row
-                className="align-items-center justify-content-center"
-                style={{
-                  backgroundColor: "#F8F8F8",
-                  width: "100%",
-                  height: "100px",
-                }}
-              >
-                <Col
-                  className="align-items-center"
-                  sm={6}
-                  style={{ textAlign: "center" }}
-                >
-                  <p
-                    style={{
-                      color: "#3A405E",
-                      fontWeight: "bold",
-                      fontSize: "20px",
-                    }}
-                  >
-                    Which folder do you want to associate your files with?
-                  </p>
-                </Col>
-                <Col
-                  className="align-items-center"
-                  sm={3}
-                  style={{ textAlign: "left" }}
-                >
-                  <Dropdown>
-                    <Dropdown.Toggle
-                      variant="outline-secondary"
-                      drop="up"
-                      id="dropdown-basic"
-                      style={{ padding: "2%" }}
-                    >
-                      {this.state.selectedFolder
-                        ? this.state.selectedFolder
-                        : "Choose Folder"}
-                    </Dropdown.Toggle>
-
-                    <Dropdown.Menu drop="up">
-                      <Dropdown.ItemText>
-                        <CreatableAdvanced onSelectFolder={this.saveFolder} />
-                      </Dropdown.ItemText>
-                    </Dropdown.Menu>
-                  </Dropdown>
+                    Back{" "}
+                  </Button>
                 </Col>
               </Row>
               <Row>
-                <Col>
-                  {/* <button onClick={this.uploadMulti}>upload</button> */}
-                </Col>
-                {this.state.loader && (
-                  <>
-                    <Col>
-                      <ProgressBar
-                        variant={this.state.progressColor}
-                        animated
-                        now={this.state.loadedAjax1 + this.state.loadedAjax2}
-                        label={`${
-                          Math.round(this.state.loadedAjax1) +
-                          Math.round(this.state.loadedAjax2)
-                        }%`}
+                <Col
+                  style={{ display: this.state.inputFile ? "block" : "none" }}
+                >
+                  <div
+                    style={{
+                      height: "80vh",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "auto",
+                    }}
+                  >
+                    <div
+                      id="fileUp"
+                      onClick={fileInputClicked}
+                      onDragOver={dragOver}
+                      onDragEnter={dragEnter}
+                      onDragLeave={dragLeave}
+                      onDrop={fileDrop}
+                      style={{
+                        width: "70%",
+                        height: "70%",
+                        border: "4px dashed #E8E7F2",
+                        textAlign: "center",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <img
+                        src={uploadImg}
+                        style={{ marginTop: "8%", marginBottom: "3%" }}
                       />
-                    </Col>
-                    <Col onClick={this.cancel}>X</Col>
-                  </>
-                )}
+                      <h2
+                        style={{
+                          color: "#3A405E",
+                          font: "normal normal medium 32px/43px Roboto",
+                          letterSpacing: "0.58px",
+                        }}
+                      >
+                        <p
+                          id="upload"
+                          style={{
+                            color: "#3A405E",
+                            textDecoration: "underline",
+                            cursor: "pointer",
+                            display: "inline",
+                          }}
+                        >
+                          Upload
+                        </p>
+                        <p style={{ display: "inline" }}>
+                          {" "}
+                          or drag your files here
+                        </p>{" "}
+                      </h2>
+                    </div>
+                    <input
+                      style={{ display: "none" }}
+                      ref={this.fileInputRef}
+                      className="file-input"
+                      type="file"
+                      multiple
+                      onChange={filesSelected}
+                    />
+                  </div>
+                </Col>
+
+                <Col
+                  style={{
+                    minHeight: "80vh",
+                    textAlign: "center",
+                    padding: "0.5%",
+                    display: this.state.showFiles ? "block" : "none",
+                  }}
+                >
+                  {" "}
+                  <div
+                    style={{ width: "80%", margin: "10%", marginTop: "10%" }}
+                  >
+                    <BootstrapTable
+                      keyField="id"
+                      data={this.state.filesToUp}
+                      columns={columns}
+                      noDataIndication={notFiles}
+                      bordered={false}
+                      striped
+                      hover
+                      condensed
+                      search
+                    />
+                  </div>
+                  <Container style={{ marginTop: "10%" }}>
+                    <Row
+                      className="align-items-center justify-content-center"
+                      style={{
+                        backgroundColor: "#F8F8F8",
+                        width: "100%",
+                        height: "100px",
+                      }}
+                    >
+                      <Col
+                        className="align-items-center"
+                        sm={6}
+                        style={{ textAlign: "center" }}
+                      >
+                        <p
+                          style={{
+                            color: "#3A405E",
+                            fontWeight: "bold",
+                            fontSize: "20px",
+                          }}
+                        >
+                          Which folder do you want to associate your files with?
+                        </p>
+                      </Col>
+                      <Col
+                        className="align-items-center"
+                        sm={3}
+                        style={{ textAlign: "left" }}
+                      >
+                        <Dropdown>
+                          <Dropdown.Toggle
+                            variant="outline-secondary"
+                            drop="up"
+                            id="dropdown-basic"
+                            style={{ padding: "2%" }}
+                          >
+                            {this.state.selectedFolder
+                              ? this.state.selectedFolder
+                              : "Choose Folder"}
+                          </Dropdown.Toggle>
+
+                          <Dropdown.Menu drop="up">
+                            <Dropdown.ItemText>
+                              <CreatableAdvanced
+                                onSelectFolder={this.saveFolder}
+                              />
+                            </Dropdown.ItemText>
+                          </Dropdown.Menu>
+                        </Dropdown>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col>
+                        {/* <button onClick={this.uploadMulti}>upload</button> */}
+                      </Col>
+                      {this.state.loader && (
+                        <>
+                          <Col>
+                            <ProgressBar
+                              variant={this.state.progressColor}
+                              animated
+                              now={
+                                this.state.loadedAjax1 + this.state.loadedAjax2
+                              }
+                              label={`${
+                                Math.round(this.state.loadedAjax1) +
+                                Math.round(this.state.loadedAjax2)
+                              }%`}
+                            />
+                          </Col>
+                          <Col onClick={this.cancel}>X</Col>
+                        </>
+                      )}
+                    </Row>
+                  </Container>
+                </Col>
               </Row>
-            </Container>
-          </Col>
+            </Col>
           </Row>
-        </Col>
-        </Row>
-      </Container>
+        </Container>
       </div>
     );
   }
