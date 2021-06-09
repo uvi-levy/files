@@ -18,7 +18,8 @@ import {
   OverlayTrigger,
   Tooltip,
   Button,
-  Form,
+  DropdownButton,
+  Dropdown,
   ResponsiveEmbed,
   Container,
   Row,
@@ -36,8 +37,6 @@ import Adiuo from "./assets/headphones-solid.png";
 import Video from "./assets/video-solid.png";
 import SingleUser from "./assets/user-solid.png";
 import FileCard from "./assets/Group.png";
-import Print from "./assets/print.png";
-import Copy from "./assets/copy.png";
 import Delete from "./assets/delete.png";
 import Move from "./assets/moveTo.png";
 import Download from "./assets/download.png";
@@ -66,7 +65,6 @@ export class Files extends Component {
     super(props);
     this.textAreaRef = React.createRef();
     this.textAreaFolderRef = React.createRef();
-    
 
     this.state = {
       next: false,
@@ -110,6 +108,8 @@ export class Files extends Component {
       showList: false,
       view: [],
       filter: [{}],
+      selectedfolder:'',
+      visibleDel:false
     };
 
     this.showFiles = this.showFiles.bind(this);
@@ -402,6 +402,7 @@ export class Files extends Component {
         console.log(row.id);
 
         this.findByTag(row.name);
+        this.setState({ selectedFolder: row.name });
       }
     }
     console.log("checkBoxValue" + checkBoxValue);
@@ -409,6 +410,7 @@ export class Files extends Component {
       if (checkBoxValue.includes("folder")) {
         console.log(checkBoxValue.split("/")[1]);
         this.findByTag(checkBoxValue.split("/")[1]);
+        this.setState({ selectedFolder: checkBoxValue.split("/")[1] });
       }
     }
 
@@ -454,6 +456,7 @@ export class Files extends Component {
           <Preview
             file={file}
             jwt={this.props.jwt}
+            findByTag={(folder)=>{this.findByTag(folder)}}
             cleanPreView={() => {
               this.setState({
                 filePreview: (
@@ -673,9 +676,7 @@ export class Files extends Component {
           const gridCard = (
             <Card
               className="gridCard"
-              onClick={() =>
-                this.findFile(null, null, "folder/" + folder.name)
-              }
+              onClick={() => this.findFile(null, null, "folder/" + folder.name)}
               style={{
                 borderRadius: " 11px 11px 0px 0px",
                 margin: "10% 7% 10% 7%",
@@ -842,11 +843,7 @@ export class Files extends Component {
     console.log(jwtFromCookie);
     $.ajax({
       type: "GET",
-      url:
-        "https://files.codes/api/" +
-        localStorage.getItem("userName") +
-        "/findByTag/" +
-        folder,
+      url: "https://files.codes/api/" + userName + "/findByTag/" + folder,
       headers: { Authorization: this.props.jwt },
       success: (data) => {
         console.log(data);
@@ -874,7 +871,35 @@ export class Files extends Component {
       },
     });
   };
-
+  toggleDeleteDialog=()=>{
+    this.setState({
+      visibleDel: !this.state.visibleDel,
+    });
+  }
+  removeFolder = () => {
+    this.toggleDeleteDialog()
+    let folder = this.state.selectedFolder;
+    console.log("remove Folder", folder);
+    if (!folder) {
+      alert("Folder cannot be deleted")
+    } else {
+      $.ajax({
+        type: "POST",
+        url: "https://files.codes/api/" + userName + "/removeFolder",
+        headers: { Authorization: this.props.jwt },
+        data:{folder},
+        success: (data) => {
+          console.log(data);
+        this.props.loadFiles()
+        this.setState({inFolder: true,
+          showBreadcrumb: false,})
+        },
+        error: (err) => {
+          alert("please try again later");
+        },
+      });
+    }
+  };
   render() {
     const {
       grid,
@@ -1190,23 +1215,25 @@ export class Files extends Component {
     const sizePerPageRenderer = ({
       options,
       currSizePerPage,
-      onSizePerPageChange,
+      onSizePerPageChange
     }) => (
-      <div className="btn-group" role="group">
-        {options.map((option) => {
-          const isSelect = currSizePerPage === `${option.page}`;
-          return (
-            <button
-              key={option.text}
-              type="button"
-              onClick={() => onSizePerPageChange(option.page)}
-              className={`btn ${isSelect ? "btn-secondary" : "btn-warning"}`}
-            >
-              {option.text}
-            </button>
-          );
-        })}
-      </div>
+      <DropdownButton drop="up" variant="outline-secondary" title='files per page'>
+        {
+          options.map((option) => {
+            const isSelect = currSizePerPage === `${option.page}`;
+            return (
+              <Dropdown.Item
+                key={ option.text }
+                type="button"
+                onClick={ () => onSizePerPageChange(option.page) }
+                className={ `btn ${isSelect ? 'btn-secondary' : 'btn-warning'}` }
+              >
+                { option.text }
+              </Dropdown.Item>
+            );
+          })
+        }
+      </DropdownButton>
     );
 
     const options = {
@@ -1225,6 +1252,46 @@ export class Files extends Component {
         }}
       >
         <div>
+        {this.state.visibleDel && (
+            <Dialog height={230} width={580}>
+              <Container>
+                <Row>
+                  <Col md={1}>
+                    <Button
+                      variant="light"
+                      style={{ color: "#8181A5" }}
+                      onClick={this.toggleDeleteDialog}
+                    >
+                      X
+                    </Button>
+                  </Col>
+                </Row>
+                <Row
+                  className="justify-content-start"
+                  style={{ textAlign: "left", margin: "2%" }}
+                >
+                  <Col  style={{ margin: "0" }}>
+                    {" "}
+                    <h6 style={{ width: "100%" }}>
+                      Are you sure you want to delete this folder with all its contents?
+                    </h6>
+                  </Col>
+            
+                </Row>
+                <Row className="justify-content-md-center">
+                  <Col style={{ margin: "4%" }} md={2}>
+                    <Button
+                      variant="primary"
+                      style={{ borderRadius: "7px" }}
+                      onClick={this.removeFolder}
+                    >
+                      Yes, I'm sure!
+                    </Button>
+                  </Col>
+                </Row>
+              </Container>
+            </Dialog>
+          )}
           {this.state.visibleNewFolder && (
             <Dialog height={150} width={550}>
               <Container>
@@ -1427,39 +1494,82 @@ export class Files extends Component {
                           </OverlayTrigger>
                         </Col>
                         <Col style={{ height: "50px" }}></Col>
-                        
-                          {this.state.showBreadcrumb && (
-                            <>
-                                <Col md={2}>
-                            <Button style={{float: "right"}}><img src={Delete}/></Button>
-                            </Col>
-                            <Col >
-                            <Breadcrumb>
-                              <Breadcrumb.Item
-                                onClick={() => {
-                                  this.setState(
-                                    {
-                                      filter: [{}],
-                                      inFolder: true,
-                                      currentPage: 1,
-                                    },
-                                    () => {
-                                      this.showFiles();
-                                    }
-                                  );
-                                }}
+
+                        {this.state.showBreadcrumb && (
+                          <>
+                            <Col md={2}>
+                              <OverlayTrigger
+                                placement="bottom"
+                                delay={{ show: 250, hide: 400 }}
+                                overlay={
+                                  <Tooltip>
+                                    <span>delete folder</span>
+                                  </Tooltip>
+                                }
                               >
-                                Folders
-                              </Breadcrumb.Item>
-                              <Breadcrumb.Item activ>
-                                {this.state.folderName}
-                              </Breadcrumb.Item>
-                              
-                            </Breadcrumb></Col>
-                        
-                            </>
-                          )}
-                        
+                                <img
+                                  variant="light"
+                                  style={{
+                                    color: "#8181A5",
+                                    backgroundColor: "#FFFFFF",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    textAlign: "left",
+                                    padding: "10px",
+                                  }}
+                                  onClick={() => this.toggleDeleteDialog()}
+                                  src={Delete}
+                                />
+                              </OverlayTrigger>
+                              <OverlayTrigger
+                                placement="bottom"
+                                delay={{ show: 250, hide: 400 }}
+                                overlay={
+                                  <Tooltip>
+                                    <span>change folder name</span>
+                                  </Tooltip>
+                                }
+                              >
+                                <img
+                                  variant="light"
+                                  style={{
+                                    color: "#8181A5",
+                                    backgroundColor: "#FFFFFF",
+                                    cursor: "pointer",
+                                    border: "none",
+                                    textAlign: "left",
+                                    padding: "10px",
+                                  }}
+                                  // onClick={() => ()}
+                                  src={Move}
+                                />
+                              </OverlayTrigger>
+                            </Col>
+                            <Col>
+                              <Breadcrumb>
+                                <Breadcrumb.Item
+                                  onClick={() => {
+                                    this.setState(
+                                      {
+                                        filter: [{}],
+                                        inFolder: true,
+                                        currentPage: 1,
+                                      },
+                                      () => {
+                                        this.showFiles();
+                                      }
+                                    );
+                                  }}
+                                >
+                                  Folders
+                                </Breadcrumb.Item>
+                                <Breadcrumb.Item activ>
+                                  {this.state.folderName}
+                                </Breadcrumb.Item>
+                              </Breadcrumb>
+                            </Col>
+                          </>
+                        )}
                       </Row>
                       <Row
                         style={{ height: "1px", backgroundColor: "#E8EAEC" }}

@@ -425,7 +425,7 @@ export class Preview extends Component {
         <button
           className="btn btn-outline-secondary folderBtn"
           style={{ color: "gray", border: "none" }}
-          onClick={() => this.findByTag(folder)}
+          onClick={() => this.props.findByTag(folder)}
         >
           <img src={Folder} />
           {folder}
