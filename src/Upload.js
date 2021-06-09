@@ -132,6 +132,7 @@ export class Upload extends Component {
             );
           } else {
             compressedFile = file;
+            console.log(compressedFile.size)
           }
           const row = {
             all: iconsClasses[compressedFile.name.split(".")[1].toLowerCase()],
@@ -208,7 +209,7 @@ export class Upload extends Component {
       alert("ooops... not files to upload");
     } else {
       myFiles.forEach((file, index) => {
-        if (file.size > 2097152) {
+        if ((file.size) > 2097152) {//
           alert(
             `sorry, the file ${file.name} is too big file, Please remove it from the list`
           );
