@@ -60,7 +60,7 @@ const { Dialog } = require("@progress/kendo-react-dialogs");
 let url = window.location;
 let userName = url.pathname.split("/")[1];
 
-export class Files extends Component {
+export class Trash extends Component {
   constructor(props) {
     super(props);
     this.textAreaRef = React.createRef();
@@ -68,6 +68,7 @@ export class Files extends Component {
 
     this.state = {
       next: false,
+      data: "",
       copied: false,
       userName: "",
       embed: "",
@@ -98,18 +99,11 @@ export class Files extends Component {
       selectedFile: {},
       files: [{}],
       grid: [],
-      inFolder: true,
-      foldersFiles: [],
-      showBreadcrumb: false,
-      folderName: "",
-      visibleNewFolder: false,
-      folders: [{}],
       showGrid: true,
       showList: false,
       view: [],
       filter: [{}],
-      selectedfolder: "",
-      visibleDel: false,
+      visibleRecovered: false,
     };
 
     this.showFiles = this.showFiles.bind(this);
@@ -128,28 +122,8 @@ export class Files extends Component {
   }
 
   componentDidMount() {
-    console.log("in componentDidMount");
-
-    var files = this.props.files;
-    var data = this.props.data;
-    console.log(data);
-    if (data == "no-files") {
-      this.setState({
-        noFiles: (
-          <div style={{ height: "50%", width: "100%" }}>
-            <NoFiles
-              goToUpload={() => {
-                this.props.history.push("/" + userName + "/upload");
-              }}
-            />
-          </div>
-        ),
-      });
-    }
-    this.setState({ files, filter: files, next: true }, () => {
-      this.loadFolders();
-      this.showFiles();
-    });
+    console.log("in trashComponentDidMount");
+    this.loadDeletetdFiles();
   }
   componentDidUpdate() {
     console.log("in componentDidUpdate");
@@ -163,6 +137,44 @@ export class Files extends Component {
       );
     }
   }
+  loadDeletetdFiles = () => {
+    $.ajax({
+      type: "GET",
+      url: "https://files.codes/api/" + userName + "/showDeletedFiles",
+      headers: { Authorization: this.props.jwt },
+      success: (data) => {
+        console.log("*data.length*", data.length, typeof data);
+        if (data.length > 0) {
+          this.setState({ data });
+          var validFiles = data.filter(
+            (file) => file.name && file.size && file.dateCreated
+          );
+          this.setState({ files: validFiles, next: true }, () => {
+            console.log("files==" + this.state.files.length);
+            this.showFiles();
+          });
+        } else {
+          this.setState(
+            {
+              next: true,
+              noFiles: (
+                <div style={{ height: "50%", width: "100%" }}>
+                  <NoFiles
+                    goToUpload={() => {
+                      this.props.history.push("/" + userName + "/upload");
+                    }}
+                  />
+                </div>
+              ),
+            },
+            () => {
+              this.showFiles();
+            }
+          );
+        }
+      },
+    });
+  };
   handleClick(event) {
     this.setState({
       currentPage: Number(event.target.id),
@@ -278,141 +290,11 @@ export class Files extends Component {
     this.props.history.push(history);
   };
 
-  // loadSharedFiles() {
-  //   console.log("loadSharedFiles");
-  //   const jwtFromCookie = this.state.jwtFromCookie;
-  //   $.ajax({
-  //     type: "GET",
-  //     url:
-  //       "https://files.codes/api/" +
-  //       localStorage.getItem("userName") +
-  //       "/getSharedFiles",
-  //     headers: { Authorization: jwtFromCookie },
-  //     success: (data) => {
-  //       console.log(data);
-
-  //       var i;
-  //       for (i = 0; i < data.length; i++) {
-  //         if (
-  //           data[i].name &&
-  //           data[i].size &&
-  //           data[i].dateCreated &&
-  //           data[i].delete == false
-  //         ) {
-  //           this.setState((prevState) => ({
-  //             files: [...prevState.files, data[i]],
-  //             filter: [...prevState.filter, data[i]],
-  //           }));
-  //         }
-  //         if (i == data.length - 1) {
-  //           console.log("all files in view" + this.state.files.length);
-  //           this.showFiles();
-  //         }
-  //       }
-
-  //       this.filterFilesByType();
-  //     },
-  //     error: (err) => {
-  //       alert("please try again later");
-  //     },
-  //   });
-  // }
-
-  // filterFilesByUser(user) {
-  //   console.log("filter by user");
-  //   const files = this.state.files;
-  //   const uId = localStorage.getItem("uId");
-  //   const userFile = files.filter((file) => file.uId == uId);
-  //   const usersFile = files.filter((file) => file.uId != uId);
-  //   if (user == "manager") {
-  //     this.setState({ filter: userFile }, () => {
-  //       this.showFiles();
-  //     });
-  //   }
-  //   if (user == "team") {
-  //     this.setState({ filter: usersFile }, () => {
-  //       this.showFiles();
-  //     });
-  //   }
-  // }
-  loadFolders = () => {
-    console.log("loadFolders");
-    var myFolder = [];
-    var data = this.props.data;
-    if (typeof data === "object") {
-      data.forEach((file) => {
-        if (
-          file.delete == false &&
-          file.tags != "" &&
-          file.tags != "null" &&
-          file.tags
-        ) {
-          const folder = file.tags.split("/");
-
-          folder.forEach((folder) => myFolder.push(folder));
-        }
-      });
-
-      let stringArray = myFolder.map(JSON.stringify);
-      let uniqueStringArray = new Set(stringArray);
-
-      var foldersArr = [];
-      var folders = [{}];
-
-      uniqueStringArray.forEach((str) => {
-        foldersArr.push(str);
-      });
-      foldersArr.forEach((folder) => {
-        if (folder && !folder.includes("\\") && folder != '"undefined"') {
-          const clean = folder.replace(/["']/g, "");
-          const filteredFiles = data.filter(
-            (file) =>
-              file.tags != null && file.tags && file.tags.includes(clean)
-          );
-          var date = filteredFiles.reduce((r, o) =>
-            o.datecreated < r.datecreated ? o : r
-          );
-          var size = 0;
-          for (let index = 0; index < filteredFiles.length; index++) {
-            size += filteredFiles[index].size * 1024;
-          }
-          var folder = { name: clean, size: size, date: date.dateCreated };
-
-          folders.push(folder);
-        }
-      });
-
-      this.setState({ folders }, () => {
-        console.log(this.state.folders);
-
-        this.showFiles();
-      });
-    }
-  };
   findFile(row, isSelect, checkBoxValue) {
     console.log("in findFile " + isSelect);
-    const selectedFile = this.state.selectedFile;
     const files = this.state.files;
-    var fileUrl = "";
     var cards = $(".gridCard");
     cards.css("outline", "none ");
-
-    if (row) {
-      if (row.id.includes("folder")) {
-        console.log(row.id);
-
-        this.findByTag(row.name);
-        this.setState({ selectedFolder: row.name });
-      }
-    }
-    console.log("checkBoxValue" + checkBoxValue);
-    if (typeof checkBoxValue === "string") {
-      if (checkBoxValue.includes("folder")) {
-        console.log(checkBoxValue.split("/")[1]);
-        this.findByTag(checkBoxValue.split("/")[1]);
-        this.setState({ selectedFolder: checkBoxValue.split("/")[1] });
-      }
-    }
 
     files.forEach((file) => {
       if (row) {
@@ -420,9 +302,7 @@ export class Files extends Component {
           console.log(file);
 
           if (isSelect) {
-            this.showPreFile(file);
-
-            this.setState({ selectedFile: file, showIcons: true }, () => {
+            this.setState({ selectedFile: file }, () => {
               console.log(this.state.selectedFile);
             });
           }
@@ -435,58 +315,43 @@ export class Files extends Component {
 
           var card = $("#" + checkBoxValue);
           card.css("outline", "1px solid #8181A5 ");
-          this.showPreFile(file);
 
-          this.setState({ selectedFile: file, showIcons: true }, () => {});
+          this.setState({ selectedFile: file });
         }
       }
     });
-
-    if (isSelect == false) {
-      this.setState({ showIcons: false });
-    }
   }
+  recoveredFile=(fileId)=> {
+    console.log("in recoveredFile");
 
-  showPreFile = (file) => {
-    if (file && file.name.split("__")[1] && file.dateCreated.split("T")[0]) {
-      console.log("showPreFile", file);
+    this.toggleDialog();
 
-      this.setState({
-        filePreview: (
-          <Preview
-            file={file}
-            jwt={this.props.jwt}
-            findByTag={(folder) => {
-              this.findByTag(folder);
-            }}
-            cleanPreView={() => {
-              this.setState({
-                filePreview: (
-                  <p style={{ margin: "0", color: "#75798E" }}>
-                    no Preview Available
-                  </p>
-                ),
-              });
-            }}
-            loadFiles={() => {
-              this.props.loadFiles();
-            }}
-          />
-        ),
-      });
-    } else {
-      this.setState({
-        filePreview: (
-          <p style={{ margin: "0", color: "#75798E" }}>no Preview Available</p>
-        ),
-      });
-    }
-  };
+    const jwtFromCookie = this.props.jwt;
 
+    console.log(fileId);
+
+    $.ajax({
+      type: "PUT",
+      url: "https://files.codes/api/" + userName + "/recovereMultiFiles",
+      headers: { Authorization: jwtFromCookie },
+      data: JSON.stringify({ files: fileId }),
+      dataType: "json",
+      contentType: "application/json",
+
+      success: (data) => {
+
+        alert("file recovered!!");
+        this.props.loadFiles();
+      },
+      error:  (err)=> {
+        alert("err");
+      },
+    });
+    //}
+  }
   showFiles() {
     console.log("in showFiles");
     const files = this.state.filter;
-    const folders = this.state.folders;
 
     var iconsClasses = {
       ai: <img src={imgFile} />,
@@ -662,245 +527,18 @@ export class Files extends Component {
         }
       });
     } else console.log("no files");
-    if (folders && this.state.inFolder == true) {
-      folders.forEach((folder) => {
-        console.log(folders.length);
-        var folderImg = <img src={Folder} />;
-        if (folder.name && folder.date) {
-          const row = {
-            id: "folder " + folder.name,
-            all: folderImg,
-            name: folder.name,
-            // team: user,
-            date: folder.date.split("T")[0].substr(2),
-            "file size": folder.size.toPrecision(4).toString() + " KB",
-          };
-          const gridCard = (
-            <Card
-              className="gridCard"
-              onClick={() => this.findFile(null, null, "folder/" + folder.name)}
-              style={{
-                borderRadius: " 11px 11px 0px 0px",
-                margin: "10% 7% 10% 7%",
-                width: "100%",
-                maxWidth: "100%",
-                minWidth: "200px",
-                height: "185px",
-                overflow: "hidden",
-                padding: "0",
-              }}
-            >
-              <Card.Body style={{ padding: "1%" }}>
-                <Card.Text
-                  style={{
-                    height: "130px",
-                    textAlign: "center",
-                    alignItems: "center",
-                    display: "flex",
-                    cursor: "pointer",
-                    width: "100%",
-                    borderRadius: "11px 11px 0 0",
-                    margin: "0",
-                    backgroundColor: "#EFF0F2",
-                  }}
-                >
-                  <img
-                    style={{
-                      display: "block",
-                      maxWidth: "95%",
-                      maxHeight: "95%",
-                      margin: "auto",
-                    }}
-                    src={FileCard}
-                  />
-                </Card.Text>
-                <Card.Title>
-                  <p style={{ fontSize: "85%" }}>{folder.name}</p>
-                </Card.Title>
-                <Card.Text
-                  style={{ backgroundColor: "#EFF0F2", marginBottom: "0" }}
-                >
-                  <Container fluid>
-                    <Row>
-                      <Col style={{ padding: "0" }}>
-                        {" "}
-                        <small style={{ fontSize: "70%", float: "left" }}>
-                          {folder.date.split("T")[0].substr(2)}
-                        </small>
-                      </Col>
-                      <Col style={{ padding: "0" }}>
-                        <small style={{ fontSize: "70%", float: "right" }}>
-                          {folder.size.toPrecision(4).toString()} KB
-                        </small>
-                      </Col>
-                    </Row>
-                  </Container>
-                </Card.Text>
-              </Card.Body>
-            </Card>
-          );
-          rows.push(row);
-          grid.unshift(gridCard);
-        }
-      });
-    }
+
     this.setState({ view: rows, grid: grid }, () => {
       console.log("^^^^^^^^" + this.state.view.length);
     });
   }
 
-  copyEmbed() {
-    console.log("in copyEmbed");
-    const file = this.state.selectedFile;
-    const embed = (
-      <div id="embed" style={{ width: 660, height: "auto" }}>
-        <ResponsiveEmbed aspectRatio="16by9">
-          <iframe src={file.url} allowfullscreen="true" />
-        </ResponsiveEmbed>
-      </div>
-    );
-    this.setState({ embed, embedView: true });
-  }
-  exportEmbed() {
-    var target = document.getElementById("embed").innerHTML;
-    console.log(target, "@");
-
-    this.textAreaRef.current.value = target;
-    this.textAreaRef.current.select();
-    this.textAreaRef.current.setSelectionRange(0, 99999);
-    document.execCommand("copy");
-    this.setState({ copied: true });
-    // this.setCopySuccess('Copied!');
-  }
-
-  toggleNewFolder() {
-    this.setState({
-      visibleNewFolder: !this.state.visibleNewFolder,
-    });
-  }
-  newFolder() {
-    console.log("in newFolder");
-    const folder = this.textAreaFolderRef.current.value;
-    console.log(folder);
-    var newFolder = true;
-    console.log(this.state.foldersFiles);
-    // this.state.foldersFiles.forEach((file) => {
-    //   if (file.tags.includes(folder)) {
-    //     newFolder = false;
-    //     console.log('folder already')
-    //   }
-    // });
-    this.props.data.forEach((file) => {
-      if (
-        file.delete == false &&
-        file.tags != "" &&
-        file.tags != "null" &&
-        file.tags &&
-        file.tags.includes(folder)
-      ) {
-        newFolder = false;
-        console.log("folder already");
-      }
-    });
-    if (newFolder == true) {
-      var myFile = new FormData();
-      myFile.append("tags", folder);
-      $.ajax({
-        type: "POST",
-        url:
-          "https://files.codes/api/" +
-          localStorage.getItem("userName") +
-          "/createNewFolder",
-        headers: { Authorization: this.props.jwt },
-        data: myFile,
-        processData: false,
-        contentType: false,
-        success: (data) => {
-          alert("new folder created!");
-          this.setState({ visibleNewFolder: false });
-          console.log(data);
-          this.props.loadFiles();
-        },
-        error: (err) => {
-          alert("please try again later");
-        },
-      });
-    } else {
-      alert(
-        `This folder: ${folder} - already exists, Use "move to" to transfer files to it`
-      );
-    }
-  }
-
-  findByTag = (folder) => {
-    console.log("in findByTag");
-    console.log(folder);
-    this.setState({
-      folderName: folder,
-      filePreview: (
-        <p style={{ margin: "0", color: "#75798E" }}>no Preview Available</p>
-      ),
-    });
-    const jwtFromCookie = this.props.jwt;
-    console.log(jwtFromCookie);
-    $.ajax({
-      type: "GET",
-      url: "https://files.codes/api/" + userName + "/findByTag/" + folder,
-      headers: { Authorization: this.props.jwt },
-      success: (data) => {
-        console.log(data);
-        this.setState(
-          {
-            filter: data,
-            inFolder: false,
-            showBreadcrumb: true,
-            currentPage: 1,
-            noFiles: (
-              <div style={{ height: "50%", width: "100%" }}>
-                <NoFiles
-                  goToUpload={() => {
-                    this.props.history.push("/" + userName + "/upload");
-                  }}
-                />
-              </div>
-            ),
-          },
-          () => this.showFiles()
-        );
-      },
-      error: (err) => {
-        alert("please try again later");
-      },
-    });
-  };
   toggleDeleteDialog = () => {
     this.setState({
       visibleDel: !this.state.visibleDel,
     });
   };
-  removeFolder = () => {
-    this.toggleDeleteDialog();
-    let folder = this.state.selectedFolder;
-    console.log("remove Folder", folder);
-    if (!folder) {
-      alert("Folder cannot be deleted");
-    } else {
-      $.ajax({
-        type: "POST",
-        url: "https://files.codes/api/" + userName + "/removeFolder",
-        headers: { Authorization: this.props.jwt },
-        data: { folder },
-        success: (data) => {
-          console.log(data);
-          this.props.loadFiles();
-          this.setState({ inFolder: true, showBreadcrumb: false });
-        },
-        error: (err) => {
-          alert("please try again later");
-        },
-      });
-    }
-  };
+
   render() {
     const {
       grid,
@@ -1050,7 +688,8 @@ export class Files extends Component {
     );
     const date = (
       <span>
-        DATE CREATED <img style={{ height: "10px" }} src={ArrFilter} />
+        Date Of Deletion
+        <img style={{ height: "10px" }} src={ArrFilter} />
       </span>
     );
     const file = (
@@ -1075,14 +714,6 @@ export class Files extends Component {
         headerClasses: "header-class",
         style: { width: "4%", direction: "ltr" },
         headerStyle: { fontSize: "90%" },
-        headerEvents: {
-          onMouseEnter: (e, column, columnIndex) => {
-            this.setState({ allDisplay: "block" });
-          },
-          onMouseLeave: (e, column, columnIndex) => {
-            this.setState({ allDisplay: "none" });
-          },
-        },
         headerAlign: "center",
       },
       {
@@ -1116,14 +747,6 @@ export class Files extends Component {
         headerStyle: { fontSize: "90%" },
         style: { width: "7%" },
         headerAlign: "center",
-        headerEvents: {
-          onMouseEnter: (e, column, columnIndex) => {
-            this.setState({ TeamDisplay: "block" });
-          },
-          onMouseLeave: (e, column, columnIndex) => {
-            this.setState({ TeamDisplay: "none" });
-          },
-        },
         headerAlign: "center",
         headerSortingStyle,
       },
@@ -1255,7 +878,7 @@ export class Files extends Component {
         }}
       >
         <div>
-          {this.state.visibleDel && (
+          {this.state.visibleRecovered && (
             <Dialog height={230} width={580}>
               <Container>
                 <Row>
@@ -1276,8 +899,7 @@ export class Files extends Component {
                   <Col style={{ margin: "0" }}>
                     {" "}
                     <h6 style={{ width: "100%" }}>
-                      Are you sure you want to delete this folder with all its
-                      contents?
+                      Are you sure you want to recovered this file?
                     </h6>
                   </Col>
                 </Row>
@@ -1286,7 +908,7 @@ export class Files extends Component {
                     <Button
                       variant="primary"
                       style={{ borderRadius: "7px" }}
-                      onClick={this.removeFolder}
+                      onClick={this.recoveredFile}
                     >
                       Yes, I'm sure!
                     </Button>
@@ -1295,76 +917,7 @@ export class Files extends Component {
               </Container>
             </Dialog>
           )}
-          {this.state.visibleNewFolder && (
-            <Dialog height={150} width={550}>
-              <Container>
-                <Row>
-                  <Col style={{ margin: "0", padding: "0" }} md={1}>
-                    <Button
-                      variant="light"
-                      style={{ color: "#8181A5" }}
-                      onClick={this.toggleNewFolder}
-                    >
-                      X
-                    </Button>
-                  </Col>
-                </Row>
-                <Row
-                  className="justify-content-start"
-                  style={{ textAlign: "left" }}
-                >
-                  <Col
-                    md={1}
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    {" "}
-                    <img src={Link} />
-                  </Col>
-                  <Col md={6} style={{}}>
-                    {" "}
-                    <h3>New Folder</h3>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col md={6}>
-                    <textarea
-                      style={{
-                        width: "100%",
-                        border: "none",
-                        backgroundColor: "#F6F6FA",
-                        fontSize: "90%",
-                        resize: "none",
-                      }}
-                      placeholder="Folder name"
-                      ref={this.textAreaFolderRef}
-                    ></textarea>
-                  </Col>
-                  <Col md={2}>
-                    <Button
-                      variant="light"
-                      style={{ borderRadius: "7px" }}
-                      onClick={this.toggleNewFolder}
-                    >
-                      cancel
-                    </Button>
-                  </Col>
-                  <Col md={2}>
-                    <Button
-                      variant="primary"
-                      style={{ borderRadius: "7px" }}
-                      onClick={this.newFolder}
-                    >
-                      create
-                    </Button>
-                  </Col>
-                </Row>
-              </Container>
-            </Dialog>
-          )}
+        
         </div>
         <div>
           <ToolkitProvider
@@ -1384,7 +937,6 @@ export class Files extends Component {
               <div style={{ marginTop: "1%" }}>
                 {this.state.next && (
                   <Navbar
-                    jwt={this.props.jwt}
                     files={this.state.files}
                     folders={this.state.folders}
                     changeProps={(val, fol, history) => {
@@ -1396,49 +948,7 @@ export class Files extends Component {
                     }}
                   />
                 )}
-                {/* {this.state.embedView && (
-                  <div>
-                    {" "}
-                    {this.state.embed}
-                    <Button
-                      style={{ margin: "4px" }}
-                      variant="warning"
-                      onClick={this.exportEmbed}
-                    >
-                      copy the file Inside a iFrame tag{" "}
-                    </Button>
-                    <div className="container">
-                      <div className="row">
-                        <div className="col">
-                          {this.state.copied && (
-                            <span style={{ color: "#B8860B" }}>copied!</span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="row">
-                        <div className="col ">
-                          <textarea
-                            className="bubble"
-                            style={{ width: "100%" }}
-                            ref={this.textAreaRef}
-                          />
-                          <Button
-                            style={{ float: "right" }}
-                            variant="dark"
-                            onClick={() =>
-                              this.setState({ embedView: false, copied: false })
-                            }
-                          >
-                            x
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="row">
-                        <div className="col"> </div>
-                      </div>
-                    </div>
-                  </div>
-                )} */}
+               
                 <Container fluid>
                   <Row>
                     <Col
@@ -1499,81 +1009,7 @@ export class Files extends Component {
                         </Col>
                         <Col style={{ height: "50px" }}></Col>
 
-                        {this.state.showBreadcrumb && (
-                          <>
-                            <Col md={2}>
-                              <OverlayTrigger
-                                placement="bottom"
-                                delay={{ show: 250, hide: 400 }}
-                                overlay={
-                                  <Tooltip>
-                                    <span>delete folder</span>
-                                  </Tooltip>
-                                }
-                              >
-                                <img
-                                  variant="light"
-                                  style={{
-                                    color: "#8181A5",
-                                    backgroundColor: "#FFFFFF",
-                                    cursor: "pointer",
-                                    border: "none",
-                                    textAlign: "left",
-                                    padding: "10px",
-                                  }}
-                                  onClick={() => this.toggleDeleteDialog()}
-                                  src={Delete}
-                                />
-                              </OverlayTrigger>
-                              <OverlayTrigger
-                                placement="bottom"
-                                delay={{ show: 250, hide: 400 }}
-                                overlay={
-                                  <Tooltip>
-                                    <span>change folder name</span>
-                                  </Tooltip>
-                                }
-                              >
-                                <img
-                                  variant="light"
-                                  style={{
-                                    color: "#8181A5",
-                                    backgroundColor: "#FFFFFF",
-                                    cursor: "pointer",
-                                    border: "none",
-                                    textAlign: "left",
-                                    padding: "10px",
-                                  }}
-                                  // onClick={() => ()}
-                                  src={Move}
-                                />
-                              </OverlayTrigger>
-                            </Col>
-                            <Col>
-                              <Breadcrumb>
-                                <Breadcrumb.Item
-                                  onClick={() => {
-                                    this.setState(
-                                      {
-                                        filter: [{}],
-                                        inFolder: true,
-                                        currentPage: 1,
-                                      },
-                                      () => {
-                                        this.showFiles();
-                                      }
-                                    );
-                                  }}
-                                >
-                                  Folders
-                                </Breadcrumb.Item>
-                                <Breadcrumb.Item activ>
-                                  {this.state.folderName}
-                                </Breadcrumb.Item>
-                              </Breadcrumb>
-                            </Col>
-                          </>
-                        )}
+                      
                       </Row>
                       <Row
                         style={{ height: "1px", backgroundColor: "#E8EAEC" }}

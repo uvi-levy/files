@@ -1,6 +1,13 @@
 import React, { Component } from "react";
 import { ProgressBar } from "react-bootstrap";
 import $ from "jquery";
+let userName;
+let url = window.location;
+if (window.location == "http://localhost:3000/uvi") {
+  userName = "uvi";
+} else {
+  userName = url.pathname.split("/")[1];
+}
 export class Chart extends Component {
   constructor(props) {
     super(props);
@@ -8,30 +15,12 @@ export class Chart extends Component {
   }
 
   componentDidMount() {
-    var jwtFromCookie;
-    if (window.location == "http://localhost:3000/uvi") {
-      jwtFromCookie =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJ1TEtTN0RQa1dzZHl3bW4xTGFSdjFnSTNSWUwyIiwiZW1haWwiOiJ1dmlAbGVhZGVyLmNvZGVzIiwiaXAiOiI4MC4xNzkuNTcuMjAxIiwiaWF0IjoxNjAzOTYyNjk3fQ.uZ4aMsxJOFlqOCoIHF3JGZZUAca-li9AahlilBbx_9o";
-    } else {
-      jwtFromCookie = document.cookie
-        ? document.cookie
-            .split(";")
-            .filter((s) => s.includes("jwt"))[0]
-            .split("=")
-            .pop()
-        : null;
-    }
-    var userName;
-    let url = window.location;
-    if (window.location == "http://localhost:3000/uvi") {
-      userName = "uvi";
-    } else {
-      userName = url.pathname.split("/")[1];
-    }
+  
+ 
     $.ajax({
       type: "GET",
       url: "https://files.codes/api/" + userName + "/getCount",
-      headers: { authorization: jwtFromCookie },
+      headers: { authorization: this.props.jwt },
       error: (err) => {
         console.log(err);
       },

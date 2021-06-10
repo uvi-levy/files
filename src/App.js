@@ -14,6 +14,8 @@ import { Err } from "./Err";
 import { User } from "@leadercodes/leader-header";
 import { Navbar } from "./Navbar";
 import { NoFiles } from "./NoFiles";
+import { Trash } from "./Trash";
+
 
 import { Container, Row, Col } from "react-bootstrap";
 
@@ -74,7 +76,7 @@ export class App extends Component {
       headers: { authorization: this.state.jwtFromCookie },
       error: (err) => {
         if (err.status == 401) {
-          window.location = "https://accounts.codes/files/login";
+          window.location = "https://dev.accounts.codes/files/login";
         }
       },
       success: (data) => {
@@ -138,9 +140,15 @@ export class App extends Component {
                 }}
               />
             </Route>
-            {/* <Route exact path="/:userName/comp">
-              <Home history={history} />
-            </Route> */}
+            <Route exact path="/:userName/test-trash">
+              <Trash
+                history={history}
+                jwt={this.state.jwtFromCookie}
+                loadFiles={() => {
+                  this.loadFiles();
+                }}
+              />
+            </Route>
 
             <ProtectedRoute
               path={"/admin/:userName"}

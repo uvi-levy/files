@@ -211,7 +211,7 @@ export class Preview extends Component {
         type: "POST",
         url:
           "https://files.codes/api/" +
-          localStorage.getItem("userName") +
+         userName +
           "/saveNotes",
         headers: { Authorization: this.props.jwt },
         data: JSON.stringify({

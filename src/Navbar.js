@@ -236,7 +236,7 @@ export class Navbar extends Component {
             <Col style={{ marginLeft: "6%" }} sm={7} md={7}>
               <Row className="justify-content-md-flex-end ">
                 {" "}
-               <Col><Chart /></Col> 
+               <Col><Chart jwt={this.props.jwt}/></Col> 
                 {buttonsViews}
               </Row>
             </Col>
